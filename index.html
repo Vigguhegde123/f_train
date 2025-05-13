@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Train Reservation System</title>
   <style>
     body {
@@ -132,64 +133,42 @@
   </main>
 
   <script>
-    const apiBase = "https://your-backend-url.onrender.com"; // Replace with your actual Flask backend URL
+    const apiBase = `${window.location.protocol}//${window.location.host}`;
 
     async function reserve() {
-      const name = document.getElementById("name").value.trim();
-      const id = document.getElementById("id").value.trim();
-      const age = parseInt(document.getElementById("age").value);
-      const priority = parseInt(document.getElementById("priority").value) || 0;
-
-      if (!name || !id || isNaN(age)) {
-        alert("Please fill in all required fields.");
-        return;
-      }
-
-      const payload = { name, id, age, priority };
-
+      const payload = {
+        name: document.getElementById("name").value,
+        id: document.getElementById("id").value,
+        age: parseInt(document.getElementById("age").value),
+        priority: parseInt(document.getElementById("priority").value) || 0
+      };
       try {
         const res = await fetch(`${apiBase}/reserve`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload)
         });
-
         const data = await res.json();
-
-        if (res.ok) {
-          alert("Reservation successful:\n" + JSON.stringify(data, null, 2));
-        } else {
-          alert("Reservation failed:\n" + JSON.stringify(data, null, 2));
-        }
+        alert(JSON.stringify(data, null, 2));
       } catch (error) {
-        alert("An error occurred while reserving:\n" + error.message);
+        alert("An error occurred while making the reservation.");
+        console.error(error);
       }
     }
 
     async function cancel() {
-      const pid = document.getElementById("cancel_id").value.trim();
-
-      if (!pid) {
-        alert("Please enter a Passenger ID to cancel.");
-        return;
-      }
-
+      const pid = document.getElementById("cancel_id").value;
       try {
         const res = await fetch(`${apiBase}/cancel`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ id: pid })
         });
-
         const data = await res.json();
-
-        if (res.ok) {
-          alert("Cancellation successful:\n" + JSON.stringify(data, null, 2));
-        } else {
-          alert("Cancellation failed:\n" + JSON.stringify(data, null, 2));
-        }
+        alert(JSON.stringify(data, null, 2));
       } catch (error) {
-        alert("An error occurred while cancelling:\n" + error.message);
+        alert("An error occurred while cancelling the reservation.");
+        console.error(error);
       }
     }
 
@@ -199,7 +178,8 @@
         const data = await res.json();
         document.getElementById("status_output").textContent = JSON.stringify(data, null, 2);
       } catch (error) {
-        document.getElementById("status_output").textContent = "An error occurred while fetching status:\n" + error.message;
+        document.getElementById("status_output").textContent = "An error occurred while fetching status.";
+        console.error(error);
       }
     }
   </script>
