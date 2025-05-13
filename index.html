@@ -135,36 +135,72 @@
     const apiBase = "https://your-backend-url.onrender.com"; // Replace with your actual Flask backend URL
 
     async function reserve() {
-      const payload = {
-        name: document.getElementById("name").value,
-        id: document.getElementById("id").value,
-        age: parseInt(document.getElementById("age").value),
-        priority: parseInt(document.getElementById("priority").value) || 0
-      };
-      const res = await fetch(`${apiBase}/reserve`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
-      const data = await res.json();
-      alert(JSON.stringify(data, null, 2));
+      const name = document.getElementById("name").value.trim();
+      const id = document.getElementById("id").value.trim();
+      const age = parseInt(document.getElementById("age").value);
+      const priority = parseInt(document.getElementById("priority").value) || 0;
+
+      if (!name || !id || isNaN(age)) {
+        alert("Please fill in all required fields.");
+        return;
+      }
+
+      const payload = { name, id, age, priority };
+
+      try {
+        const res = await fetch(`${apiBase}/reserve`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          alert("Reservation successful:\n" + JSON.stringify(data, null, 2));
+        } else {
+          alert("Reservation failed:\n" + JSON.stringify(data, null, 2));
+        }
+      } catch (error) {
+        alert("An error occurred while reserving:\n" + error.message);
+      }
     }
 
     async function cancel() {
-      const pid = document.getElementById("cancel_id").value;
-      const res = await fetch(`${apiBase}/cancel`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: pid })
-      });
-      const data = await res.json();
-      alert(JSON.stringify(data, null, 2));
+      const pid = document.getElementById("cancel_id").value.trim();
+
+      if (!pid) {
+        alert("Please enter a Passenger ID to cancel.");
+        return;
+      }
+
+      try {
+        const res = await fetch(`${apiBase}/cancel`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: pid })
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          alert("Cancellation successful:\n" + JSON.stringify(data, null, 2));
+        } else {
+          alert("Cancellation failed:\n" + JSON.stringify(data, null, 2));
+        }
+      } catch (error) {
+        alert("An error occurred while cancelling:\n" + error.message);
+      }
     }
 
     async function getStatus() {
-      const res = await fetch(`${apiBase}/status`);
-      const data = await res.json();
-      document.getElementById("status_output").textContent = JSON.stringify(data, null, 2);
+      try {
+        const res = await fetch(`${apiBase}/status`);
+        const data = await res.json();
+        document.getElementById("status_output").textContent = JSON.stringify(data, null, 2);
+      } catch (error) {
+        document.getElementById("status_output").textContent = "An error occurred while fetching status:\n" + error.message;
+      }
     }
   </script>
 
