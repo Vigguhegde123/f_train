@@ -10,20 +10,17 @@
       margin: 0;
       padding: 0;
     }
-
     header {
       background-color: #004aad;
       color: white;
       padding: 20px;
       text-align: center;
     }
-
     main {
       max-width: 800px;
       margin: 20px auto;
       padding: 0 20px;
     }
-
     .card {
       background: white;
       padding: 20px;
@@ -31,21 +28,17 @@
       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
       border-radius: 10px;
     }
-
     h2 {
       margin-top: 0;
       color: #004aad;
     }
-
-    input[type="text"],
-    input[type="number"] {
+    input[type="text"], input[type="number"] {
       padding: 10px;
       margin: 5px 0;
       width: calc(100% - 22px);
       border-radius: 5px;
       border: 1px solid #ccc;
     }
-
     button {
       background-color: #004aad;
       color: white;
@@ -55,23 +48,19 @@
       cursor: pointer;
       margin-top: 10px;
     }
-
     button:hover {
       background-color: #003080;
     }
-
     pre {
       background: #eee;
       padding: 15px;
       border-radius: 5px;
       overflow: auto;
     }
-
     .input-group {
       display: flex;
       flex-direction: column;
     }
-
     @media (min-width: 600px) {
       .input-row {
         display: flex;
@@ -84,7 +73,6 @@
   </style>
 </head>
 <body>
-
   <header>
     <h1>🚆 Train Reservation System</h1>
   </header>
@@ -111,6 +99,10 @@
           <label>Priority</label>
           <input id="priority" placeholder="Enter priority (0 default)" type="number" />
         </div>
+        <div class="input-group">
+          <label>Phone Number</label>
+          <input id="phone" placeholder="Enter phone number" type="text" />
+        </div>
       </div>
       <button onclick="reserve()">Reserve</button>
     </div>
@@ -127,20 +119,27 @@
     <div class="card">
       <h2>Reservation Status</h2>
       <button onclick="getStatus()">Refresh Status</button>
+      <p id="stats"></p>
       <pre id="status_output">Click "Refresh Status" to see current reservations.</pre>
     </div>
   </main>
 
   <script>
-    const apiBase = "https://f-train3.onrender.com"; // Replace with your actual Flask backend URL
+    const apiBase = "http://localhost:10000"; // Change this if deployed
 
     async function reserve() {
-      const payload = {
-        name: document.getElementById("name").value,
-        id: document.getElementById("id").value,
-        age: parseInt(document.getElementById("age").value),
-        priority: parseInt(document.getElementById("priority").value) || 0
-      };
+      const name = document.getElementById("name").value;
+      const id = document.getElementById("id").value;
+      const age = parseInt(document.getElementById("age").value);
+      const priority = parseInt(document.getElementById("priority").value) || 0;
+      const phone = document.getElementById("phone").value;
+
+      if (!name || !id || isNaN(age) || !phone) {
+        alert("Please fill in all required fields.");
+        return;
+      }
+
+      const payload = { name, id, age, priority, phone };
       const res = await fetch(`${apiBase}/reserve`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -148,10 +147,17 @@
       });
       const data = await res.json();
       alert(JSON.stringify(data, null, 2));
+      getStatus();
+      clearForm();
     }
 
     async function cancel() {
       const pid = document.getElementById("cancel_id").value;
+      if (!pid) {
+        alert("Please enter a Passenger ID.");
+        return;
+      }
+
       const res = await fetch(`${apiBase}/cancel`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -159,14 +165,33 @@
       });
       const data = await res.json();
       alert(JSON.stringify(data, null, 2));
+      getStatus();
+      document.getElementById("cancel_id").value = "";
     }
 
     async function getStatus() {
       const res = await fetch(`${apiBase}/status`);
       const data = await res.json();
-      document.getElementById("status_output").textContent = JSON.stringify(data, null, 2);
+      let output = `Confirmed:\n`;
+      data.confirmed.forEach(p => {
+        output += ` - ${p.name} (ID: ${p.id}, Age: ${p.age}, Priority: ${p.priority})\n`;
+      });
+      output += `\nWaiting List:\n`;
+      data.waiting_list.forEach(p => {
+        output += ` - ${p.name} (ID: ${p.id}, Age: ${p.age}, Priority: ${p.priority})\n`;
+      });
+      document.getElementById("status_output").textContent = output;
+      document.getElementById("stats").textContent = `Confirmed: ${data.confirmed.length}, Waiting: ${data.waiting_list.length}`;
     }
-  </script>
 
+    function clearForm() {
+      ["name", "id", "age", "priority", "phone"].forEach(id => {
+        document.getElementById(id).value = "";
+      });
+    }
+
+    // Auto-refresh every 10 seconds
+    setInterval(getStatus, 10000);
+  </script>
 </body>
 </html>
