@@ -1,187 +1,119 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
   <title>Train Reservation System</title>
   <style>
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: #f9f9f9;
-      margin: 0;
-      padding: 0;
+      font-family: sans-serif;
+      max-width: 700px;
+      margin: auto;
+      padding: 30px;
+      background: #f4f4f4;
     }
-
-    header {
-      background-color: #004aad;
-      color: white;
-      padding: 20px;
-      text-align: center;
-    }
-
-    main {
-      max-width: 800px;
-      margin: 20px auto;
-      padding: 0 20px;
-    }
-
-    .card {
-      background: white;
-      padding: 20px;
-      margin-bottom: 20px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      border-radius: 10px;
-    }
-
-    h2 {
-      margin-top: 0;
-      color: #004aad;
-    }
-
-    input[type="text"],
-    input[type="number"] {
+    input, button {
       padding: 10px;
       margin: 5px 0;
-      width: calc(100% - 22px);
-      border-radius: 5px;
-      border: 1px solid #ccc;
+      width: 100%;
     }
-
     button {
-      background-color: #004aad;
+      background: #007BFF;
       color: white;
-      padding: 10px 15px;
       border: none;
-      border-radius: 5px;
       cursor: pointer;
-      margin-top: 10px;
     }
-
     button:hover {
-      background-color: #003080;
+      background: #0056b3;
     }
-
+    .section {
+      background: white;
+      padding: 20px;
+      margin-bottom: 30px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px #ddd;
+    }
     pre {
       background: #eee;
-      padding: 15px;
-      border-radius: 5px;
-      overflow: auto;
-    }
-
-    .input-group {
-      display: flex;
-      flex-direction: column;
-    }
-
-    @media (min-width: 600px) {
-      .input-row {
-        display: flex;
-        gap: 10px;
-      }
-      .input-row .input-group {
-        flex: 1;
-      }
+      padding: 10px;
+      border-radius: 6px;
     }
   </style>
 </head>
 <body>
 
-  <header>
-    <h1>🚆 Train Reservation System</h1>
-  </header>
+  <h1>Train Reservation System</h1>
 
-  <main>
-    <div class="card">
-      <h2>Reserve a Seat</h2>
-      <div class="input-row">
-        <div class="input-group">
-          <label>Name</label>
-          <input id="name" placeholder="Enter name" type="text" />
-        </div>
-        <div class="input-group">
-          <label>ID</label>
-          <input id="id" placeholder="Enter ID" type="text" />
-        </div>
-      </div>
-      <div class="input-row">
-        <div class="input-group">
-          <label>Age</label>
-          <input id="age" placeholder="Enter age" type="number" />
-        </div>
-        <div class="input-group">
-          <label>Priority</label>
-          <input id="priority" placeholder="Enter priority (0 default)" type="number" />
-        </div>
-      </div>
-      <button onclick="reserve()">Reserve</button>
-    </div>
+  <div class="section">
+    <h2>Reserve a Seat</h2>
+    <input type="text" id="name" placeholder="Name" />
+    <input type="text" id="id" placeholder="Passenger ID" />
+    <input type="number" id="age" placeholder="Age" />
+    <input type="number" id="priority" placeholder="Priority (default 0)" />
+    <button onclick="reserve()">Reserve</button>
+  </div>
 
-    <div class="card">
-      <h2>Cancel a Reservation</h2>
-      <div class="input-group">
-        <label>Passenger ID</label>
-        <input id="cancel_id" placeholder="Enter Passenger ID" type="text" />
-      </div>
-      <button onclick="cancel()">Cancel</button>
-    </div>
+  <div class="section">
+    <h2>Cancel Reservation</h2>
+    <input type="text" id="cancelId" placeholder="Passenger ID to cancel" />
+    <button onclick="cancel()">Cancel</button>
+  </div>
 
-    <div class="card">
-      <h2>Reservation Status</h2>
-      <button onclick="getStatus()">Refresh Status</button>
-      <pre id="status_output">Click "Refresh Status" to see current reservations.</pre>
-    </div>
-  </main>
+  <div class="section">
+    <h2>Status</h2>
+    <button onclick="loadStatus()">Refresh Status</button>
+    <pre id="statusDisplay">Loading...</pre>
+  </div>
 
   <script>
-    const apiBase =https://train-3-e6g2.onrender.com;
+    const API_BASE = ""; // If deployed on Render, leave empty.
 
     async function reserve() {
-      const payload = {
-        name: document.getElementById("name").value,
-        id: document.getElementById("id").value,
-        age: parseInt(document.getElementById("age").value),
-        priority: parseInt(document.getElementById("priority").value) || 0
-      };
-      try {
-        const res = await fetch(`${apiBase}/reserve`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
-        });
-        const data = await res.json();
-        alert(JSON.stringify(data, null, 2));
-      } catch (error) {
-        alert("An error occurred while making the reservation.");
-        console.error(error);
+      const name = document.getElementById("name").value;
+      const id = document.getElementById("id").value;
+      const age = parseInt(document.getElementById("age").value);
+      const priority = parseInt(document.getElementById("priority").value) || 0;
+
+      if (!name || !id || isNaN(age)) {
+        alert("Please fill in all required fields.");
+        return;
       }
+
+      const response = await fetch(`${API_BASE}/reserve`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, id, age, priority })
+      });
+      const data = await response.json();
+      alert(`Reservation ${data.status} for ${data.passenger.name}`);
+      loadStatus();
     }
 
     async function cancel() {
-      const pid = document.getElementById("cancel_id").value;
-      try {
-        const res = await fetch(`${apiBase}/cancel`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ id: pid })
-        });
-        const data = await res.json();
-        alert(JSON.stringify(data, null, 2));
-      } catch (error) {
-        alert("An error occurred while cancelling the reservation.");
-        console.error(error);
+      const id = document.getElementById("cancelId").value;
+      if (!id) {
+        alert("Please enter a Passenger ID to cancel.");
+        return;
       }
+
+      const response = await fetch(`${API_BASE}/cancel`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id })
+      });
+      const data = await response.json();
+      alert(`Status: ${data.status}`);
+      loadStatus();
     }
 
-    async function getStatus() {
-      try {
-        const res = await fetch(`${apiBase}/status`);
-        const data = await res.json();
-        document.getElementById("status_output").textContent = JSON.stringify(data, null, 2);
-      } catch (error) {
-        document.getElementById("status_output").textContent = "An error occurred while fetching status.";
-        console.error(error);
-      }
+    async function loadStatus() {
+      const response = await fetch(`${API_BASE}/status`);
+      const data = await response.json();
+      document.getElementById("statusDisplay").textContent =
+        "Confirmed:\n" + JSON.stringify(data.confirmed, null, 2) +
+        "\n\nWaiting List:\n" + JSON.stringify(data.waiting_list, null, 2);
     }
+
+    window.onload = loadStatus;
   </script>
 
 </body>
