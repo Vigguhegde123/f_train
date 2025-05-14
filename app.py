@@ -1,40 +1,29 @@
-from flask import Flask, request, jsonify, send_from_directory
-import heapq
-from flask_cors import CORS
-import os
+# app.py
 
-app = Flask(__name__, static_folder="static")
-CORS(app)
+from flask import Flask, request, jsonify, render_template
+from train_reservation import TrainReservationSystem
 
-# Your Passenger and TrainReservationSystem classes remain unchanged
-
+app = Flask(__name__)
 system = TrainReservationSystem()
 
-@app.route("/")
+@app.route('/')
 def index():
-    return send_from_directory(app.static_folder, "index.html")
+    return render_template('index.html')
 
-@app.route("/reserve", methods=["POST"])
-def reserve():
-    data = request.get_json()
-    name = data.get("name")
-    pid = data.get("id")
-    age = data.get("age")
-    priority = data.get("priority", 0)
-    passenger = Passenger(name, pid, age, priority)
-    result = system.reserve(passenger)
-    return jsonify(result)
+@app.route('/book', methods=['POST'])
+def book():
+    data = request.json
+    response = system.book_ticket(data)
+    return jsonify(response)
 
-@app.route("/cancel", methods=["POST"])
-def cancel():
-    data = request.get_json()
-    pid = data.get("id")
-    result = system.cancel(pid)
-    return jsonify(result)
+@app.route('/bookings')
+def bookings():
+    return jsonify(system.get_bookings())
 
-@app.route("/status", methods=["GET"])
-def status():
-    return jsonify(system.status())
+@app.route('/cancel/<int:index>', methods=['DELETE'])
+def cancel(index):
+    response = system.cancel_ticket(index)
+    return jsonify(response)
 
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=10000, debug=True)
+if __name__ == '__main__':
+    app.run(debug=True)
